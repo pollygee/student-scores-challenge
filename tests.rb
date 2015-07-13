@@ -5,29 +5,32 @@ require 'pry'
 class Student
   attr_reader :id, :first_name, :absences, :quiz_average, :test_average
   def self.all
+    result = []
     CSV.foreach "db.csv" do |row|
-      Student.new([r[0],r[1], r[2], r[3], r[4], r[5]])
+      next if row.first == "Student Id"
+      s = Student.new row
+      result.push s
     end
+    result
   end
 
   def initialize attributes
     @id, @first_name, @last_name, absences, quiz_average, test_average = attributes
     @absences = Integer(absences)
-    @quiz = Float(quiz)
-    @test = Flat(test)
+    @quiz_average = Float(quiz_average)
+    @test_average = Float(test_average)
   end
 
   def self.without_absences
-    students = []
-    CSV.foreach "db.csv" do |row|
-      next if row.first == "Student Id"
-      s = Student.new row
-      if s.absences.to_i == 0
-        result.push s
-      end
-      return result
+   all.select{|student| student.absences == 0}
+  end
 
-    end
+  def self.top_by_average_score
+    all.max_by { |student| student.final_average}
+  end
+
+  def final_average
+    0.4 *@quiz_average + 0.6 * @test_average
   end
 end
 
@@ -44,6 +47,6 @@ class StudentTest < Minitest::Test
   end
 
   def test_can_find_highest_scoring_student
-    assert_equal 0, Student.top_by_test_score.first_name
+    assert_equal "Toni", Student.top_by_average_score.first_name
   end
 end
